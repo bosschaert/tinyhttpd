@@ -19,13 +19,13 @@ import org.osgi.service.cm.ManagedService;
 
 public class ServerController implements ManagedService {
     private Channel channel;
+    private final ServerBootstrap serverBootstrap;
     private final NioEventLoopGroup bossGroup;
     private final NioEventLoopGroup workerGroup;
 
     // Configuration properties
     private int port = -1;
-    private String webRoot = System.getProperty("user.home");
-    private ServerBootstrap serverBootstrap;
+    private volatile String webRoot = System.getProperty("user.home");
 
     ServerController() {
         bossGroup = new NioEventLoopGroup();
