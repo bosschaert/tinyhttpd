@@ -1,11 +1,5 @@
 package org.coderthoughts.tinyhttpd;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.CACHE_CONTROL;
-import static io.netty.handler.codec.http.HttpHeaders.Names.DATE;
-import static io.netty.handler.codec.http.HttpHeaders.Names.EXPIRES;
-import static io.netty.handler.codec.http.HttpHeaders.Names.LAST_MODIFIED;
-import static io.netty.handler.codec.http.HttpResponseStatus.NOT_MODIFIED;
-import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -135,7 +129,6 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             endMarkerFuture.addListener(ChannelFutureListener.CLOSE);
         }
     }
-
     private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status,
                 Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
@@ -144,10 +137,16 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     }
 
     private static void sendNotModified(ChannelHandlerContext ctx) {
-        FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, NOT_MODIFIED);
+        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_MODIFIED);
 
         Calendar time = new GregorianCalendar();
-        response.headers().set(DATE, HTTP_DATE_FORMATTER.format(time.getTime()));
+        response.headers().set(HttpHeaders.Names.DATE, HTTP_DATE_FORMATTER.format(time.getTime()));
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    }
+
+    private static void sendRedirect(ChannelHandlerContext ctx, String newLocation) {
+        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.FOUND);
+        response.headers().set(HttpHeaders.Names.LOCATION, newLocation);
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
@@ -168,6 +167,11 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             return null;
         }
 
+        if (uri.trim().equals("/")) {
+            sendRedirect(ctx, uri + "index.html");
+            return null;
+        }
+
         if (webRoot == null) {
             sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
             return null;
@@ -180,13 +184,13 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private static void setDateAndCacheHeaders(HttpResponse response, File fileToCache) {
         // Date header
         Calendar time = new GregorianCalendar();
-        response.headers().set(DATE, HTTP_DATE_FORMATTER.format(time.getTime()));
+        response.headers().set(HttpHeaders.Names.DATE, HTTP_DATE_FORMATTER.format(time.getTime()));
 
         // Add cache headers
         time.add(Calendar.SECOND, HTTP_CACHE_SECONDS);
-        response.headers().set(EXPIRES, HTTP_DATE_FORMATTER.format(time.getTime()));
-        response.headers().set(CACHE_CONTROL, "private, max-age=" + HTTP_CACHE_SECONDS);
-        response.headers().set(
-                LAST_MODIFIED, HTTP_DATE_FORMATTER.format(new Date(fileToCache.lastModified())));
+        response.headers().set(HttpHeaders.Names.EXPIRES, HTTP_DATE_FORMATTER.format(time.getTime()));
+        response.headers().set(HttpHeaders.Names.CACHE_CONTROL, "private, max-age=" + HTTP_CACHE_SECONDS);
+        response.headers().set(HttpHeaders.Names.LAST_MODIFIED,
+                HTTP_DATE_FORMATTER.format(new Date(fileToCache.lastModified())));
     }
 }

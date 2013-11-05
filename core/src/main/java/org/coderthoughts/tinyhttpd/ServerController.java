@@ -61,6 +61,9 @@ public class ServerController implements ManagedService {
 
     @Override
     public void updated(Dictionary<String, ?> properties) throws ConfigurationException {
+        if (properties == null)
+            return;
+
         System.out.println("Server Configuration Updated: " + properties);
         Object p = properties.get("port");
         if (p != null) {
