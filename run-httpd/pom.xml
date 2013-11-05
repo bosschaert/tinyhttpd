@@ -23,7 +23,7 @@
           <framework>felix</framework>
           <provision>
             <param>--workingDirectory=target/runner</param>
-            <param>mvn:org.osgi/org.osgi.compendium/4.1.0@2</param>
+            <param>mvn:org.apache.felix/org.apache.felix.configadmin/1.8.0</param>
           </provision>
         </configuration>
       </plugin>
