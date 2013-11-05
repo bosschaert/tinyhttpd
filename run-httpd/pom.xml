@@ -18,11 +18,19 @@
         <artifactId>maven-pax-plugin</artifactId>
         <version>1.5</version>
         <configuration>
-          <runner>1.5.0</runner>
-          <framework>felix</framework>
+          <runner>1.8.5</runner>
+          <framework>equinox</framework>
           <provision>
             <param>--workingDirectory=target/classes</param>
             <param>mvn:org.apache.felix/org.apache.felix.configadmin/1.8.0</param>
+            <param>mvn:org.apache.felix/org.apache.felix.fileinstall/3.2.6</param>
+            <param>mvn:io.netty/netty-buffer/${netty.version}</param>
+            <param>mvn:io.netty/netty-codec/${netty.version}</param>
+            <param>mvn:io.netty/netty-codec-http/${netty.version}</param>
+            <param>mvn:io.netty/netty-common/${netty.version}</param>
+            <param>mvn:io.netty/netty-handler/${netty.version}</param>
+            <param>mvn:io.netty/netty-transport/${netty.version}</param>
+            <param>mvn:org.coderthoughts.tinyhttpd/core/${project.version}</param>
           </provision>
         </configuration>
         <executions>
