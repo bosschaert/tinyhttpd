@@ -9,10 +9,9 @@
   </parent>
 
   <artifactId>run-httpd</artifactId>
-  <packaging>pom</packaging>
+  <packaging>jar</packaging>
 
   <build>
-    <defaultGoal>pax:provision</defaultGoal>
     <plugins>
       <plugin>
         <groupId>org.ops4j</groupId>
@@ -22,10 +21,18 @@
           <runner>1.5.0</runner>
           <framework>felix</framework>
           <provision>
-            <param>--workingDirectory=target/runner</param>
+            <param>--workingDirectory=target/classes</param>
             <param>mvn:org.apache.felix/org.apache.felix.configadmin/1.8.0</param>
           </provision>
         </configuration>
+        <executions>
+          <execution>
+            <phase>integration-test</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
