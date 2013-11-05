@@ -25,20 +25,21 @@ public class ServerController implements ManagedService {
     // Configuration properties
     private int port = -1;
     private String webRoot = System.getProperty("user.home");
+    private ServerBootstrap serverBootstrap;
 
     ServerController() {
         bossGroup = new NioEventLoopGroup();
         workerGroup = new NioEventLoopGroup();
+
+        serverBootstrap = new ServerBootstrap();
+        serverBootstrap.group(bossGroup, workerGroup).
+            channel(NioServerSocketChannel.class).
+            childHandler(new ChildHandlerInitializer());
     }
 
     synchronized void start() throws InterruptedException {
-        ServerBootstrap b = new ServerBootstrap();
-        b.group(bossGroup, workerGroup).
-            channel(NioServerSocketChannel.class).
-            childHandler(new ChildHandlerInitializer());
-
         System.out.print("Server starting on port: " + port + "...");
-        channel = b.bind(port).sync().channel();
+        channel = serverBootstrap.bind(port).sync().channel();
         System.out.println("done");
     }
 
