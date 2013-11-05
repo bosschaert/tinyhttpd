@@ -10,5 +10,13 @@
   <modules>
     <module>core</module>
   </modules>  
+  
+  <properties>
+    <osgi.version>5.0.0</osgi.version>
+    <netty.version>4.0.11.Final</netty.version>  
+  
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>  
 </project>
 
+    

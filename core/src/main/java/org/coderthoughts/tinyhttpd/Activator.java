@@ -16,7 +16,7 @@ public class Activator implements BundleActivator {
         Hashtable<String, Object> properties = new Hashtable<>();
         properties.put(Constants.SERVICE_PID, "org.coderthoughts.tinyhttpd");
         context.registerService(ManagedService.class, controller, properties);
-        // Controller is started through configuration
+        // The ServerController is started through configuration
     }
 
     @Override
