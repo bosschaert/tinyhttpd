@@ -18,25 +18,27 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 
 public class ServerController implements ManagedService {
-    private int port = -1;
     private Channel channel;
-    private NioEventLoopGroup bossGroup;
-    private NioEventLoopGroup workerGroup;
-    private ServerBootstrap serverBootstrap;
+    private final NioEventLoopGroup bossGroup;
+    private final NioEventLoopGroup workerGroup;
+
+    // Configuration properties
+    private int port = -1;
+    private String webRoot = System.getProperty("user.home");
 
     ServerController() {
         bossGroup = new NioEventLoopGroup();
         workerGroup = new NioEventLoopGroup();
-
-        serverBootstrap = new ServerBootstrap();
-        serverBootstrap.group(bossGroup, workerGroup).
-            channel(NioServerSocketChannel.class).
-            childHandler(new Initializer());
     }
 
     synchronized void start() throws InterruptedException {
+        ServerBootstrap b = new ServerBootstrap();
+        b.group(bossGroup, workerGroup).
+            channel(NioServerSocketChannel.class).
+            childHandler(new ChildHandlerInitializer());
+
         System.out.print("Server starting on port: " + port + "...");
-        channel = serverBootstrap.bind(port).sync().channel();
+        channel = b.bind(port).sync().channel();
         System.out.println("done");
     }
 
@@ -72,14 +74,14 @@ public class ServerController implements ManagedService {
                 throw new ConfigurationException("port", "Unable to change port number: " + p, e);
             }
         }
+
+        Object root = properties.get("root");
+        if (root instanceof String) {
+            webRoot = (String) root;
+        }
     }
 
-    /*
-    public static void main(String [] args) throws InterruptedException {
-        new ServerController().start();
-    }*/
-
-    static class Initializer extends ChannelInitializer<SocketChannel> {
+    class ChildHandlerInitializer extends ChannelInitializer<SocketChannel> {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
             ChannelPipeline pipeline = ch.pipeline();
@@ -87,7 +89,7 @@ public class ServerController implements ManagedService {
             pipeline.addLast("aggregator", new HttpObjectAggregator(65536));
             pipeline.addLast("encoder", new HttpResponseEncoder());
             pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
-            pipeline.addLast("handler", new HttpHandler());
+            pipeline.addLast("handler", new HttpHandler(webRoot));
         }
     }
 }

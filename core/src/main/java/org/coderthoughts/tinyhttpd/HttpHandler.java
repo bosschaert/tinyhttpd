@@ -47,6 +47,12 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         HTTP_DATE_FORMATTER.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
+    private final String webRoot;
+
+    public HttpHandler(String webRoot) {
+        this.webRoot = webRoot;
+    }
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest request) throws Exception {
         if (!request.getDecoderResult().isSuccess()) {
@@ -145,7 +151,7 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
-    private static String getPathFromUri(ChannelHandlerContext ctx, String uri) {
+    private String getPathFromUri(ChannelHandlerContext ctx, String uri) {
         try {
             uri = URLDecoder.decode(uri, "UTF-8");
         } catch (UnsupportedEncodingException e) {
@@ -162,8 +168,13 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             return null;
         }
 
+        if (webRoot == null) {
+            sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+            return null;
+        }
+
         uri = uri.replace('/', File.separatorChar);
-        return System.getProperty("user.home") + File.separator + uri; // TODO configure root
+        return webRoot + File.separator + uri;
     }
 
     private static void setDateAndCacheHeaders(HttpResponse response, File fileToCache) {
