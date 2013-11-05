@@ -1,6 +1,7 @@
 package org.coderthoughts.tinyhttpd;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
@@ -19,40 +20,63 @@ import org.osgi.service.cm.ManagedService;
 
 public class ServerController implements ManagedService {
     private int port = 8080; // TODO Start with no port?
+    private volatile Channel channel;
 
     ServerController() {}
 
-    void start() {
+    void start() throws InterruptedException {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-        try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.group(bossGroup, workerGroup).
-                channel(NioServerSocketChannel.class).
-                childHandler(new Initializer());
+//        try {
+        ServerBootstrap b = new ServerBootstrap();
+        b.group(bossGroup, workerGroup).
+            channel(NioServerSocketChannel.class).
+            childHandler(new Initializer());
 
-            b.bind(port).sync().channel().closeFuture().sync();
-            // TODO possibly better
-            // channel = b.bind(port).sync().channel()
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } finally {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
+        System.out.println("Server starting on port: " + port);
+        channel = b.bind(port).sync().channel(); // .closeFuture().sync();
+        System.out.println("$$$$ Bind returned");
+
+//            // TODO possibly better
+//            // channel = b.bind(port).sync().channel()
+//        } catch (InterruptedException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        } finally {
+//            bossGroup.shutdownGracefully();
+//            workerGroup.shutdownGracefully();
+//        }
+    }
+
+    void stop() throws InterruptedException {
+        if (channel != null) {
+            System.out.println("Server stopping port: " + port);
+            channel.close().sync();
+            System.out.println("Server stopped port: " + port);
+        }
+    }
+
+    @Override
+    public void updated(Dictionary<String, ?> properties) throws ConfigurationException {
+        System.out.println("*** Updated: " + properties);
+        Object p = properties.get("port");
+        if (p != null) {
+            try {
+                int newPort = Integer.parseInt(p.toString());
+                if (newPort != port) {
+                    stop();
+                    port = newPort;
+                    start();
+                }
+            } catch (Exception e) {
+                throw new ConfigurationException("port", "Unable to change port number: " + p, e);
+            }
         }
 
     }
 
-
-    @Override
-    public void updated(Dictionary<String, ?> properties) throws ConfigurationException {
-        // TODO Auto-generated method stub
-
-    }
-
-    public static void main(String [] args) {
+    public static void main(String [] args) throws InterruptedException {
         new ServerController().start();
     }
 
@@ -74,24 +98,6 @@ public class ServerController implements ManagedService {
     }
 
 
-    @Override
-    public void updated(Dictionary<String, ?> properties) throws ConfigurationException {
-        System.out.println("*** Updated: " + properties);
-        Object p = properties.get("port");
-        if (p != null) {
-            try {
-                int newPort = Integer.parseInt(p.toString());
-                if (newPort != port) {
-                    stop();
-                    port = newPort;
-                    start();
-                }
-            } catch (Exception e) {
-                throw new ConfigurationException("port", "Unable to change port number: " + p, e);
-            }
-        }
-
-    }
 
     public void start() throws IOException {
         System.out.println("Starting:" + port);
