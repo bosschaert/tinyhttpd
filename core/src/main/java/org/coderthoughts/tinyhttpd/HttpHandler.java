@@ -34,6 +34,10 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
+/**
+ * The HttpHandler handles the HTTP requests. It is called by Netty when a HTTP request
+ * needs to be processed.
+ */
 public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private static final int HTTP_CACHE_SECONDS = 60;
     private static final SimpleDateFormat HTTP_DATE_FORMATTER;

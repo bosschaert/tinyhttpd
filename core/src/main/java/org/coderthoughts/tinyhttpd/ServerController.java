@@ -17,6 +17,19 @@ import java.util.Dictionary;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 
+/**
+ * The ServerController starts up the Netty components and thread pools.
+ * It also registers a ManagedService in the OSGi Service Registry which
+ * is used to receive the configuration for the server.
+ * The server is only started once the configuration defining the port
+ * number is received.
+ * The configuration needs to be provided through the OSGi Configuration
+ * Admin service on the PID org.coderthoughts.tinyhttpd where the
+ * following values are recognised:
+ *   port = port number for the server
+ *   root = web root directory on local disk, defaults to the user.dir property
+ * The configuration values can be changed dynamically at runtime.
+ */
 public class ServerController implements ManagedService {
     private Channel channel;
     private final ServerBootstrap serverBootstrap;

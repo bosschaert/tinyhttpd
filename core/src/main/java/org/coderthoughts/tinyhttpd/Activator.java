@@ -7,6 +7,11 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ManagedService;
 
+/**
+ * The Activator is invoked by the OSGi Framework to activate this bundle.
+ * It registers the server with Configuration Admin and is also responsible
+ * for stopping the server.
+ */
 public class Activator implements BundleActivator {
     private ServerController controller;
 
