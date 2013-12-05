@@ -9,6 +9,7 @@
 
   <modules>
     <module>core</module>
+    <module>itests</module>
   </modules>  
   
   <properties>

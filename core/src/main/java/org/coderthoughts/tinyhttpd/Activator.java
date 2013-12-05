@@ -12,6 +12,7 @@ public class Activator implements BundleActivator {
 
     @Override
     public void start(BundleContext context) {
+        /* */ System.out.println("****** In Activator!!!");
         controller = new ServerController();
         Hashtable<String, Object> properties = new Hashtable<>();
         properties.put(Constants.SERVICE_PID, "org.coderthoughts.tinyhttpd");
