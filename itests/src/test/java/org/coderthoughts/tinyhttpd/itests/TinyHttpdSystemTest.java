@@ -52,7 +52,6 @@ public class TinyHttpdSystemTest {
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		Map<String, List<String>> headers = connection.getHeaderFields();
-		System.out.println("### " + headers);
 		Assert.assertEquals(200, connection.getResponseCode());
 		Assert.assertEquals("image/png", connection.getHeaderField("Content-Type"));
 		Assert.assertEquals("keep-alive", connection.getHeaderField("Connection"));
