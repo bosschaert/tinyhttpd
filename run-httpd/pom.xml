@@ -29,8 +29,8 @@
           <framework>equinox</framework>
           <provision>
             <param>--workingDirectory=target/classes</param>
-            <param>mvn:org.apache.felix/org.apache.felix.configadmin/1.8.0</param>
-            <param>mvn:org.apache.felix/org.apache.felix.fileinstall/3.2.6</param>
+            <param>mvn:org.apache.felix/org.apache.felix.configadmin/${felix.cm.version}</param>
+            <param>mvn:org.apache.felix/org.apache.felix.fileinstall/${felix.fileinstall.version}</param>
             <param>mvn:io.netty/netty-buffer/${netty.version}</param>
             <param>mvn:io.netty/netty-codec/${netty.version}</param>
             <param>mvn:io.netty/netty-codec-http/${netty.version}</param>
