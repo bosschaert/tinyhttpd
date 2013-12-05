@@ -2,7 +2,10 @@ package org.coderthoughts.tinyhttpd.itests;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -11,8 +14,11 @@ import org.ops4j.pax.exam.Configuration;
 import org.ops4j.pax.exam.CoreOptions;
 import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
+import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
+import org.ops4j.pax.exam.spi.reactors.PerClass;
 
 @RunWith(PaxExam.class)
+@ExamReactorStrategy(PerClass.class)
 public class TinyHttpdSystemTest {
     @Configuration
     public Option[] config() {
@@ -34,16 +40,35 @@ public class TinyHttpdSystemTest {
 
 	@Test
 	public void testReadWebResource() throws Exception {
-		String content = tryReadURL("http://localhost:7070");
+		URL url = new URL("http://localhost:7070");
+        String content = tryReadURL(url);
 		Assert.assertTrue(content.contains("Allaert Joachim David Bosschaert"));
 	}
 
-    private String tryReadURL(String url) throws Exception {
+	@Test
+	public void testReadHeaders() throws Exception {
+        URL url = new URL("http://localhost:7070/david.png");
+        tryReadURL(url);
+
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		Map<String, List<String>> headers = connection.getHeaderFields();
+		System.out.println("### " + headers);
+		Assert.assertEquals(200, connection.getResponseCode());
+		Assert.assertEquals("image/png", connection.getHeaderField("Content-Type"));
+		Assert.assertEquals("keep-alive", connection.getHeaderField("Connection"));
+		Assert.assertEquals("private, max-age=60", connection.getHeaderField("Cache-Control"));
+
+		File fileRes = new File(System.getProperty("felix.fileinstall.dir") + "/../web-root/david.png");
+		Assert.assertEquals(fileRes.length(), connection.getHeaderFieldInt("Content-Length", -1));
+		Assert.assertEquals(fileRes.lastModified(), connection.getHeaderFieldDate("Last-Modified", -1));
+	}
+
+    private String tryReadURL(URL url) throws Exception {
         int retries = 20;
         while (--retries > 0) {
             try {
                 System.out.println("Trying to read from: " + url);
-                return new String(Streams.suck(new URL(url).openStream()));
+                return new String(Streams.suck(url.openStream()));
             } catch (Exception e) {
                 // ignore
             }

@@ -22,10 +22,11 @@ import io.netty.util.CharsetUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
+import java.net.URLConnection;
 import java.net.URLDecoder;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -101,7 +102,8 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
         HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         HttpHeaders.setContentLength(response, raf.length());
-        response.headers().set(HttpHeaders.Names.CONTENT_TYPE, Files.probeContentType(file.toPath()));
+
+        setMimeTypeHeader(response, file);
         setDateAndCacheHeaders(response, file);
         if (HttpHeaders.isKeepAlive(request)) {
             response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
@@ -129,6 +131,7 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             endMarkerFuture.addListener(ChannelFutureListener.CLOSE);
         }
     }
+
     private static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status,
                 Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
@@ -192,5 +195,14 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
         response.headers().set(HttpHeaders.Names.CACHE_CONTROL, "private, max-age=" + HTTP_CACHE_SECONDS);
         response.headers().set(HttpHeaders.Names.LAST_MODIFIED,
                 HTTP_DATE_FORMATTER.format(new Date(fileToCache.lastModified())));
+    }
+
+    private static void setMimeTypeHeader(HttpResponse response, File file) throws IOException {
+        // It would have been better to use Files.probeContentType(file.toPath()) but unfortunately
+        // that doesn't work on Mac OSX.
+        String mimeType = URLConnection.guessContentTypeFromName(file.getAbsolutePath());
+        if (mimeType != null) {
+            response.headers().set(HttpHeaders.Names.CONTENT_TYPE, mimeType);
+        }
     }
 }
