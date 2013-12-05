@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -51,7 +49,6 @@ public class TinyHttpdSystemTest {
         tryReadURL(url);
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-		Map<String, List<String>> headers = connection.getHeaderFields();
 		Assert.assertEquals(200, connection.getResponseCode());
 		Assert.assertEquals("image/png", connection.getHeaderField("Content-Type"));
 		Assert.assertEquals("keep-alive", connection.getHeaderField("Connection"));
