@@ -19,6 +19,14 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http.multipart.Attribute;
+import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
+import io.netty.handler.codec.http.multipart.FileUpload;
+import io.netty.handler.codec.http.multipart.HttpDataFactory;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.EndOfDataDecoderException;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType;
 import io.netty.util.CharsetUtil;
 
 import java.io.File;
@@ -28,6 +36,7 @@ import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.net.URLConnection;
 import java.net.URLDecoder;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -41,6 +50,7 @@ import java.util.TimeZone;
  */
 public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private static final int HTTP_CACHE_SECONDS = 60;
+    private static HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
     private static final SimpleDateFormat HTTP_DATE_FORMATTER;
     static {
         HTTP_DATE_FORMATTER = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
@@ -60,11 +70,18 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             return;
         }
 
-        if (request.getMethod() != HttpMethod.GET) {
-            sendError(ctx, HttpResponseStatus.METHOD_NOT_ALLOWED);
+
+        if (request.getMethod() == HttpMethod.GET) {
+            handleGetRequest(ctx, request);
+            return;
+        } else if (request.getMethod() == HttpMethod.POST) {
+            handlePostRequest(ctx, request);
             return;
         }
+        sendError(ctx, HttpResponseStatus.METHOD_NOT_ALLOWED);
+    }
 
+    private void handleGetRequest(ChannelHandlerContext ctx, FullHttpRequest request) throws ParseException, IOException {
         String path = getPathFromUri(ctx, request.getUri());
         if (path == null) {
             // the getPathFromUri method will have written the appropriate error response
@@ -143,6 +160,93 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
         if (!HttpHeaders.isKeepAlive(request)) {
             endMarkerFuture.addListener(ChannelFutureListener.CLOSE);
+        }
+    }
+
+    StringBuilder responseContent = new StringBuilder();
+    HttpPostRequestDecoder decoder;
+    boolean chunked = false;
+    boolean readingChunks = false;
+    private void handlePostRequest(ChannelHandlerContext ctx, FullHttpRequest request) {
+        decoder = new HttpPostRequestDecoder(factory, request);
+
+        chunked = HttpHeaders.isTransferEncodingChunked(request);
+        responseContent.append("Is Chunked: " + chunked + "\n");
+        responseContent.append("Is Multipart: " + decoder.isMultipart() + "\n");
+        if (chunked) {
+            responseContent.append("Chunks: ");
+            readingChunks = true;
+        }
+
+        decoder.offer(request);
+        responseContent.append("X");
+        readHttpDataChunkByChunk();
+
+        if (request instanceof LastHttpContent) {
+            // TODO writeResponse(ctx.channel());
+            ByteBuf buffer = Unpooled.copiedBuffer(responseContent.toString(), CharsetUtil.UTF_8);
+            FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buffer);
+            response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
+
+            boolean close = request.headers().contains(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.CLOSE, true)
+                    || request.getProtocolVersion().equals(HttpVersion.HTTP_1_0)
+                    && !request.headers().contains(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE, true);
+            if (!close) {
+                response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, buffer.readableBytes());
+            }
+            ChannelFuture future = ctx.writeAndFlush(response);
+            if (close) {
+                future.addListener(ChannelFutureListener.CLOSE);
+            }
+
+            readingChunks = false;
+            // responseContent.setLenght(0);
+            decoder.destroy();
+            decoder = null;
+        }
+    }
+
+
+    private void readHttpDataChunkByChunk() {
+        try {
+            while (decoder.hasNext()) {
+                InterfaceHttpData data = decoder.next();
+                if (data != null) {
+                    try {
+                        writeHttpData(data);
+                    } finally {
+                        data.release();
+                    }
+                }
+            }
+        } catch (EndOfDataDecoderException e) {
+            // There is no more data
+        }
+    }
+
+    private void writeHttpData(InterfaceHttpData data) {
+        if (data.getHttpDataType() == HttpDataType.Attribute) {
+            Attribute attr = (Attribute) data;
+            try {
+                responseContent.append("\n BODY attribute: " + attr.getHttpDataType().name() + ":" + attr.getName() + "=" + attr.getValue());
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } else {
+            responseContent.append("\nBODY FileUpload: " + data.getHttpDataType().name() + ":" + data.toString());
+            if (data.getHttpDataType() == HttpDataType.FileUpload) {
+                FileUpload fileUpload = (FileUpload) data;
+                if (fileUpload.isCompleted()) {
+                    responseContent.append("\nContent of file:\n");
+                    try {
+                        responseContent.append(fileUpload.getString(fileUpload.getCharset()));
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
         }
     }
 
