@@ -45,18 +45,32 @@ public class TinyHttpdSystemTest {
 
 	@Test
 	public void testReadHeaders() throws Exception {
-        URL url = new URL("http://localhost:7070/david.png");
+        URL url = new URL("http://localhost:7070/images/david.png");
         tryReadURL(url);
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-		Assert.assertEquals(200, connection.getResponseCode());
-		Assert.assertEquals("image/png", connection.getHeaderField("Content-Type"));
-		Assert.assertEquals("keep-alive", connection.getHeaderField("Connection"));
-		Assert.assertEquals("private, max-age=60", connection.getHeaderField("Cache-Control"));
+        try {
+    		Assert.assertEquals(200, connection.getResponseCode());
+    		Assert.assertEquals("image/png", connection.getHeaderField("Content-Type"));
+    		Assert.assertEquals("keep-alive", connection.getHeaderField("Connection"));
+    		Assert.assertEquals("private, max-age=60", connection.getHeaderField("Cache-Control"));
 
-		File fileRes = new File(System.getProperty("felix.fileinstall.dir") + "/../web-root/david.png");
-		Assert.assertEquals(fileRes.length(), connection.getHeaderFieldInt("Content-Length", -1));
-		Assert.assertEquals(fileRes.lastModified(), connection.getHeaderFieldDate("Last-Modified", -1));
+    		File fileRes = new File(System.getProperty("felix.fileinstall.dir") + "/../web-root/images/david.png");
+    		Assert.assertEquals(fileRes.length(), connection.getHeaderFieldInt("Content-Length", -1));
+    		Assert.assertEquals(fileRes.lastModified(), connection.getHeaderFieldDate("Last-Modified", -1));
+        } finally {
+            connection.disconnect();
+        }
+	}
+
+	@Test
+	public void testDirectory() throws Exception {
+        URL url = new URL("http://localhost:7070/images/david.png");
+        tryReadURL(url);
+
+        URL dirURL = new URL("http://localhost:7070/images/");
+        String s = tryReadURL(dirURL);
+        System.out.println(s);
 	}
 
     private String tryReadURL(URL url) throws Exception {
