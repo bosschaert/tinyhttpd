@@ -21,4 +21,15 @@ public class DirectoryRendererTest {
         Assert.assertTrue("Parent directory should be listed before other directories", parentDirIdx < subDirIdx);
         Assert.assertTrue("Subdir should be listed before the file", subDirIdx < fileIdx);
     }
+
+    @Test
+    public void testRootDirectoryRendering() {
+        File dir1 = new File(getClass().getResource("/").getFile());
+        String html = DirectoryRenderer.renderDirectoryHTML("/", dir1);
+
+        int parentDirIdx = html.indexOf("parent directory");
+        Assert.assertEquals("Should not show a parent directory for the root", -1, parentDirIdx);
+        int dir1Idx = html.indexOf("<a href=\"/dir1\">dir1</a>");
+        Assert.assertTrue("Dir 1 should be listed", dir1Idx > 0);
+    }
 }
