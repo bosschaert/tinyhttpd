@@ -195,18 +195,23 @@ public class HttpHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
             return null;
         }
 
-        if (uri.trim().equals("/")) {
-            sendRedirect(ctx, uri + "index.html");
-            return null;
-        }
-
         if (webRoot == null) {
             sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
             return null;
         }
 
         uri = uri.replace('/', File.separatorChar);
-        return webRoot + File.separator + uri;
+        String path = webRoot + File.separator + uri;
+
+        if (uri.trim().endsWith("/")) {
+            // Serve the index.html file if it exists in the directory
+            if (new File(path + "index.html").isFile()) {
+                sendRedirect(ctx, uri + "index.html");
+                return null;
+            }
+        }
+
+        return path;
     }
 
     private static void setDateAndCacheHeaders(HttpResponse response, File fileToCache) {
