@@ -10,14 +10,19 @@ class DirectoryRenderer {
     }
 
     static String renderDirectoryHTML(String uri, File directory) {
-        StringBuilder sb = new StringBuilder();
+        String trimmedURI = trimSlashes(uri);
 
+        StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html><html><head><title>Directory: ");
-        sb.append(uri);
+        sb.append(trimmedURI);
         sb.append("</title></head><body>");
         sb.append("<h1>Directory: ");
-        sb.append(uri);
+        sb.append(trimmedURI);
         sb.append("</h1>");
+        sb.append("<form action=\"/upload_file\" method=\"POST\">Upload a file to this directory:");
+        sb.append("<input type=\"FILE\" name=\"file\"/>");
+        sb.append("<input type=\"SUBMIT\" name=\"upload\" value=\"Upload File\">");
+        sb.append("</form>");
         sb.append("<table>");
 
         if (!uri.trim().equals("/")) {
@@ -34,6 +39,20 @@ class DirectoryRenderer {
         sb.append("</table></body></html>\n");
 
         return sb.toString();
+    }
+
+    private static String trimSlashes(String s) {
+        s = s.trim();
+        if (s.equals("/"))
+            return s;
+
+        if (s.startsWith("/"))
+            s = s.substring(1);
+
+        if (s.endsWith("/"))
+            s = s.substring(0, s.length() - 1);
+
+        return s;
     }
 
     private static void renderFiles(StringBuilder sb, String baseUri, File[] files) {
