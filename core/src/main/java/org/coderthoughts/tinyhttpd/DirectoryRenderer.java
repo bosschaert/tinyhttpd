@@ -19,7 +19,10 @@ class DirectoryRenderer {
         sb.append("<h1>Directory: ");
         sb.append(trimmedURI);
         sb.append("</h1>");
-        sb.append("<form action=\"/upload_file\" enctype=\"multipart/form-data\" method=\"POST\">Upload a file to this directory:");
+        sb.append("<form action=\"");
+        sb.append(PostHandler.UPLOAD_URI_PREFIX);
+        sb.append(uri);
+        sb.append("\" enctype=\"multipart/form-data\" method=\"POST\">Upload a file to this directory:");
         sb.append("<input type=\"FILE\" name=\"file\"/>");
         sb.append("<input type=\"SUBMIT\" name=\"upload\" value=\"Upload File\">");
         sb.append("</form>");
