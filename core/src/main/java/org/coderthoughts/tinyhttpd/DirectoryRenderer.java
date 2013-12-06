@@ -20,6 +20,13 @@ class DirectoryRenderer {
         sb.append("</h1>");
         sb.append("<table>");
 
+        if (!uri.trim().equals("/")) {
+            // we're not at the top yet, provide a link to the parent directory
+            sb.append("<tr><td><a href=\"");
+            sb.append(uri);
+            sb.append("..\">parent directory</a></td><td></td></tr>");
+        }
+
         File[] files = directory.listFiles();
         Arrays.sort(files, new SortingFileComparator());
         renderFiles(sb, uri, files);
