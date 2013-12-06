@@ -22,18 +22,21 @@ class DirectoryRenderer {
 
         File[] files = directory.listFiles();
         Arrays.sort(files, new SortingFileComparator());
-        renderFiles(sb, files);
+        renderFiles(sb, uri, files);
 
         sb.append("</table></body></html>\n");
 
         return sb.toString();
     }
 
-    private static void renderFiles(StringBuilder sb, File[] files) {
+    private static void renderFiles(StringBuilder sb, String baseUri, File[] files) {
         for (File f : files) {
-            sb.append("<tr><td>");
+            sb.append("<tr><td><a href=\"");
+            sb.append(baseUri);
             sb.append(f.getName());
-            sb.append("</td><td>");
+            sb.append("\">");
+            sb.append(f.getName());
+            sb.append("</a></td><td>");
             if (f.isDirectory()) {
                 sb.append("directory");
             } else {
