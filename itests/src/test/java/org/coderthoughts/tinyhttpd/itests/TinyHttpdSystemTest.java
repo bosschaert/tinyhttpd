@@ -63,6 +63,7 @@ public class TinyHttpdSystemTest {
         }
 	}
 
+	/*
 	@Test
 	public void testDirectory() throws Exception {
         URL url = new URL("http://localhost:7070/images/david.png");
@@ -72,6 +73,11 @@ public class TinyHttpdSystemTest {
         String s = tryReadURL(dirURL);
         System.out.println(s);
 	}
+
+
+	// TODO test reconfigure
+	// TODO test upload
+	*/
 
     private String tryReadURL(URL url) throws Exception {
         int retries = 20;
