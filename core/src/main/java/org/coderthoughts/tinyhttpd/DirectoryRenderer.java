@@ -1,6 +1,7 @@
 package org.coderthoughts.tinyhttpd;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Comparator;
 
 class DirectoryRenderer {
@@ -20,7 +21,7 @@ class DirectoryRenderer {
         sb.append("<table>");
 
         File[] files = directory.listFiles();
-        // Arrays.sort(files, new SortingFileComparator());
+        Arrays.sort(files, new SortingFileComparator());
         renderFiles(sb, files);
 
         sb.append("</table></body></html>\n");
