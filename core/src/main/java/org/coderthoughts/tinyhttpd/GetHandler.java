@@ -1,7 +1,5 @@
 package org.coderthoughts.tinyhttpd;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,7 +15,6 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.util.CharsetUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -124,17 +121,6 @@ class GetHandler extends BaseHandler {
         if (!HttpHeaders.isKeepAlive(request)) {
             endMarkerFuture.addListener(ChannelFutureListener.CLOSE);
         }
-    }
-
-    private static void sendDirectoryListing(ChannelHandlerContext ctx, String uri, File directory) {
-        FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-        response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/html; charset=UTF-8");
-
-        String directoryHtml = DirectoryRenderer.renderDirectoryHTML(uri, directory);
-        ByteBuf buffer = Unpooled.copiedBuffer(directoryHtml, CharsetUtil.UTF_8);
-        response.content().writeBytes(buffer);
-        buffer.release();
-        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     private static void sendNotModified(ChannelHandlerContext ctx) {
