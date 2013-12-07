@@ -31,6 +31,8 @@ import org.osgi.service.cm.ManagedService;
  * The configuration values can be changed dynamically at runtime.
  */
 public class ServerController implements ManagedService {
+    static final int MAX_HTTP_CONTENT_LENGTH = 2 * 1024 * 1024; // 2mb
+
     private Channel channel;
     private final ServerBootstrap serverBootstrap;
     private final NioEventLoopGroup bossGroup;
@@ -103,7 +105,7 @@ public class ServerController implements ManagedService {
         protected void initChannel(SocketChannel ch) throws Exception {
             ChannelPipeline pipeline = ch.pipeline();
             pipeline.addLast("decoder", new HttpRequestDecoder());
-            pipeline.addLast("aggregator", new HttpObjectAggregator(1024 * 1024)); // max upload size = 1mb
+            pipeline.addLast("aggregator", new HttpObjectAggregator(MAX_HTTP_CONTENT_LENGTH)); // max upload size = 1mb
             pipeline.addLast("encoder", new HttpResponseEncoder());
             pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
             pipeline.addLast("handler", new HttpHandler(webRoot));

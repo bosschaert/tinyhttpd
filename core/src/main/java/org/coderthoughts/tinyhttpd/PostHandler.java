@@ -28,7 +28,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 class PostHandler extends BaseHandler {
-    static final String UPLOAD_URI_PREFIX = "/upload";
     private static HttpDataFactory factory = new DefaultHttpDataFactory(true);
     static {
         DiskFileUpload.deleteOnExitTemporaryFile = true;
@@ -48,11 +47,7 @@ class PostHandler extends BaseHandler {
     }
 
     void handlePostRequest(ChannelHandlerContext ctx, FullHttpRequest request) {
-        String uri = request.getUri();
-        if (!uri.startsWith(UPLOAD_URI_PREFIX)) {
-            // TODO senderror!
-        }
-        String targetDirectory = uri.substring(UPLOAD_URI_PREFIX.length());
+        String targetDirectory = request.getUri();
 
         decoder = new HttpPostRequestDecoder(factory, request);
 
