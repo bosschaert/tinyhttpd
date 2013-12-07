@@ -3,6 +3,7 @@ package org.coderthoughts.tinyhttpd;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.DiskAttribute;
@@ -77,7 +78,7 @@ class PostHandler extends BaseHandler {
                 InterfaceHttpData data = decoder.next();
                 if (data != null) {
                     try {
-                        writeHttpData(data, targetDir);
+                        writeHttpData(ctx, data, targetDir);
                     } finally {
                         data.release();
                     }
@@ -88,14 +89,16 @@ class PostHandler extends BaseHandler {
         }
     }
 
-    private void writeHttpData(InterfaceHttpData data, File uploadDir) {
+    private void writeHttpData(ChannelHandlerContext ctx, InterfaceHttpData data, File uploadDir) {
         try {
             if (data.getHttpDataType() == HttpDataType.FileUpload) {
                 FileUpload fileUpload = (FileUpload) data;
                 if (fileUpload.isCompleted()) {
                     File uploadedFile = new File(uploadDir, fileUpload.getFilename());
                     if (uploadedFile.exists()) {
-                        // TODO send an error
+                        sendError(ctx, HttpResponseStatus.NOT_ACCEPTABLE,
+                                "File already exists: " + fileUpload.getFilename());
+                        return;
                     }
                     FileOutputStream fos = new FileOutputStream(uploadedFile);
                     try {
@@ -106,9 +109,7 @@ class PostHandler extends BaseHandler {
                 }
             }
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            // TODO senderror
+            sendError(ctx, HttpResponseStatus.BAD_REQUEST, e.getMessage());
         }
     }
 }

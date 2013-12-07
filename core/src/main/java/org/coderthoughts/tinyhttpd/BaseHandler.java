@@ -70,8 +70,12 @@ abstract class BaseHandler {
     }
 
     static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
+        sendError(ctx, status, "");
+    }
+
+    static void sendError(ChannelHandlerContext ctx, HttpResponseStatus status, String message) {
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status,
-                Unpooled.copiedBuffer("Failure: " + status.toString() + "\r\n", CharsetUtil.UTF_8));
+                Unpooled.copiedBuffer("Failure: " + status.toString() + "\n" + message + "\n", CharsetUtil.UTF_8));
         response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
