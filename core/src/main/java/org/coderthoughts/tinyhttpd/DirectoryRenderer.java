@@ -15,24 +15,27 @@ class DirectoryRenderer {
         StringBuilder sb = new StringBuilder();
         sb.append("<!DOCTYPE html><html><head><title>Directory: ");
         sb.append(trimmedURI);
-        sb.append("</title></head><body>");
+        sb.append("</title><style type=\"text/css\">");
+        sb.append("body {font-family:sans-serif;}");
+        sb.append("td {padding-left:15px;}");
+        sb.append("</style></head><body bgcolor=\"#FFFFEB\">");
         sb.append("<h1>Directory: ");
         sb.append(trimmedURI);
         sb.append("</h1>");
         sb.append("<form action=\"");
         sb.append(PostHandler.UPLOAD_URI_PREFIX);
         sb.append(uri);
-        sb.append("\" enctype=\"multipart/form-data\" method=\"POST\">Upload a file to this directory:");
+        sb.append("\" enctype=\"multipart/form-data\" method=\"POST\">Upload a file to this directory: ");
         sb.append("<input type=\"FILE\" name=\"file\"/>");
         sb.append("<input type=\"SUBMIT\" name=\"upload\" value=\"Upload File\">");
-        sb.append("</form>");
+        sb.append("</form><p/>");
         sb.append("<table>");
 
         if (!uri.trim().equals("/")) {
             // we're not at the top yet, provide a link to the parent directory
-            sb.append("<tr><td><a href=\"");
+            sb.append("<tr><td><b><a href=\"");
             sb.append(uri);
-            sb.append("..\">parent directory</a></td><td></td></tr>");
+            sb.append("..\">parent directory</a></b></td><td></td></tr>");
         }
 
         File[] files = directory.listFiles();
@@ -60,12 +63,20 @@ class DirectoryRenderer {
 
     private static void renderFiles(StringBuilder sb, String baseUri, File[] files) {
         for (File f : files) {
-            sb.append("<tr><td><a href=\"");
+            sb.append("<tr><td>");
+            if (f.isDirectory()) {
+                sb.append("<b>");
+            }
+            sb.append("<a href=\"");
             sb.append(baseUri);
             sb.append(f.getName());
             sb.append("\">");
             sb.append(f.getName());
-            sb.append("</a></td><td>");
+            sb.append("</a>");
+            if (f.isDirectory()) {
+                sb.append("</b>");
+            }
+            sb.append("</td><td>");
             if (f.isDirectory()) {
                 sb.append("directory");
             } else {

@@ -13,6 +13,8 @@ import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
+import io.netty.handler.codec.http.multipart.DiskAttribute;
+import io.netty.handler.codec.http.multipart.DiskFileUpload;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
@@ -27,7 +29,13 @@ import java.io.IOException;
 
 class PostHandler extends BaseHandler {
     static final String UPLOAD_URI_PREFIX = "/upload";
-    private static HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
+    private static HttpDataFactory factory = new DefaultHttpDataFactory(true);
+    static {
+        DiskFileUpload.deleteOnExitTemporaryFile = true;
+        DiskFileUpload.baseDirectory = null;
+        DiskAttribute.deleteOnExitTemporaryFile = true;
+        DiskAttribute.baseDirectory = null;
+    }
 
     // TODO remove these
     StringBuilder responseContent = new StringBuilder();

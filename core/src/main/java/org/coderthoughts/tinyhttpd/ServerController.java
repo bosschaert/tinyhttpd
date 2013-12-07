@@ -103,7 +103,7 @@ public class ServerController implements ManagedService {
         protected void initChannel(SocketChannel ch) throws Exception {
             ChannelPipeline pipeline = ch.pipeline();
             pipeline.addLast("decoder", new HttpRequestDecoder());
-            pipeline.addLast("aggregator", new HttpObjectAggregator(65536));
+            pipeline.addLast("aggregator", new HttpObjectAggregator(1024 * 1024)); // max upload size = 1mb
             pipeline.addLast("encoder", new HttpResponseEncoder());
             pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
             pipeline.addLast("handler", new HttpHandler(webRoot));
