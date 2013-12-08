@@ -98,15 +98,15 @@ public class TinyHttpdSystemTest {
 
 	@Test
 	public void testUpload() throws Exception {
+        // Make sure the server is up and running
+        tryReadURL(new URL("http://localhost:7070/images/david.png"));
+
 	    // This is where the upload file will end up...
         File uploadedFileRes = new File(System.getProperty("felix.fileinstall.dir") + "/../web-root/images/index.html");
         if (uploadedFileRes.exists()) {
             // Delete it if it was there from an earlier test run.
             Assert.assertTrue("Precondition", uploadedFileRes.delete());
         }
-
-        // Make sure the server is up and running
-        tryReadURL(new URL("http://localhost:7070/images/david.png"));
 
         URI postURI = new URI("/images/");
         File fileRes = new File(System.getProperty("felix.fileinstall.dir") + "/../web-root/index.html");
@@ -127,10 +127,13 @@ public class TinyHttpdSystemTest {
         byte[] bytes2 = Streams.suck(new FileInputStream(uploadedFileRes));
         Assert.assertTrue("Uploaded file content not identical to original", Arrays.equals(bytes1, bytes2));
 
-        // upload again - should produce a 406
-        HttpUploadTestResponseHandler responseHandler2 = uploadFile(postURI, fileRes);
+        // upload another index.html, where one already exists - should produce a 406
+        File fileResAlt = new File(System.getProperty("felix.fileinstall.dir") + "/../alt-root/index.html");
+        HttpUploadTestResponseHandler responseHandler2 = uploadFile(postURI, fileResAlt);
         Assert.assertEquals("Uploading a file that already exists should produce a HTTP 406 status code",
                 HttpResponseStatus.NOT_ACCEPTABLE.code(), responseHandler2.status.code());
+        byte[] bytes3 = Streams.suck(new FileInputStream(uploadedFileRes));
+        Assert.assertTrue("Uploaded file content should not have been changed", Arrays.equals(bytes1, bytes3));
 	}
 
     /*
