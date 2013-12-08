@@ -133,6 +133,22 @@ public class TinyHttpdSystemTest {
                 HttpResponseStatus.NOT_ACCEPTABLE.code(), responseHandler2.status.code());
 	}
 
+    /*
+    @Test
+    public void testDirectory() throws Exception {
+        URL url = new URL("http://localhost:7070/images/david.png");
+        tryReadURL(url);
+
+        URL dirURL = new URL("http://localhost:7070/images/");
+        String s = tryReadURL(dirURL);
+        System.out.println(s);
+    }
+
+
+    // TODO test reconfigure
+    // TODO test upload
+    */
+
     private HttpUploadTestResponseHandler uploadFile(URI postURI, File fileToUpload) throws Exception {
         EventLoopGroup group = new NioEventLoopGroup();
         HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
@@ -176,22 +192,6 @@ public class TinyHttpdSystemTest {
             factory.cleanAllHttpDatas();
         }
     }
-
-	/*
-	@Test
-	public void testDirectory() throws Exception {
-        URL url = new URL("http://localhost:7070/images/david.png");
-        tryReadURL(url);
-
-        URL dirURL = new URL("http://localhost:7070/images/");
-        String s = tryReadURL(dirURL);
-        System.out.println(s);
-	}
-
-
-	// TODO test reconfigure
-	// TODO test upload
-	*/
 
     private String tryReadURL(URL url) throws Exception {
         int retries = 20;

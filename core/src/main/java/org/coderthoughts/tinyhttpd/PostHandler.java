@@ -2,7 +2,6 @@ package org.coderthoughts.tinyhttpd;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
@@ -21,18 +20,14 @@ import java.io.IOException;
 
 class PostHandler extends BaseHandler {
     private static HttpDataFactory factory = new DefaultHttpDataFactory(true);
+
+    // This is fairly standard Netty configuration
     static {
         DiskFileUpload.deleteOnExitTemporaryFile = true;
         DiskFileUpload.baseDirectory = null;
         DiskAttribute.deleteOnExitTemporaryFile = true;
         DiskAttribute.baseDirectory = null;
     }
-
-    // TODO remove these
-    StringBuilder responseContent = new StringBuilder();
-    HttpPostRequestDecoder decoder;
-    boolean chunked = false;
-    boolean readingChunks = false;
 
     public PostHandler(String webRoot) {
         super(webRoot);
@@ -41,38 +36,25 @@ class PostHandler extends BaseHandler {
     void handlePostRequest(ChannelHandlerContext ctx, FullHttpRequest request) {
         String uri = request.getUri();
 
-        decoder = new HttpPostRequestDecoder(factory, request);
-
-        chunked = HttpHeaders.isTransferEncodingChunked(request);
-        responseContent.append("Is Chunked: " + chunked + "\n");
-        responseContent.append("Is Multipart: " + decoder.isMultipart() + "\n");
-        if (chunked) {
-            responseContent.append("Chunks: ");
-            readingChunks = true;
-        }
-
+        HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(factory, request);
         decoder.offer(request);
 
         String path = getPathFromUri(ctx, uri, true);
         if (path == null) {
             return;
         }
-        File directory = new File(path);
 
-        readHttpDataChunkByChunk(ctx, directory);
+        File directory = new File(path);
+        readHttpDataChunkByChunk(ctx, decoder, directory);
 
         if (request instanceof LastHttpContent) {
             sendDirectoryListing(ctx, uri, directory);
-
-            readingChunks = false;
-            responseContent.setLength(0);
             decoder.destroy();
-            decoder = null;
         }
     }
 
 
-    private void readHttpDataChunkByChunk(ChannelHandlerContext ctx, File targetDir) {
+    private void readHttpDataChunkByChunk(ChannelHandlerContext ctx, HttpPostRequestDecoder decoder, File targetDir) {
         try {
             while (decoder.hasNext()) {
                 InterfaceHttpData data = decoder.next();
@@ -85,7 +67,7 @@ class PostHandler extends BaseHandler {
                 }
             }
         } catch (EndOfDataDecoderException e) {
-            // There is no more data, strangely enough Netty signals this by sending an Exception
+            // There is no more data, strangely enough Netty can signal this by sending an Exception
         }
     }
 
