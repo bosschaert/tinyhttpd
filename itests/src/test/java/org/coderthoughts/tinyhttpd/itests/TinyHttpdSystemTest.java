@@ -56,7 +56,7 @@ public class TinyHttpdSystemTest {
     @Configuration
     public Option[] config() {
         return CoreOptions.options(
-            CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"), // uncomment for debugging
+            // CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"), // uncomment for debugging
             CoreOptions.vmOption("-Dfelix.fileinstall.dir=" + System.getProperty("user.dir")
                 + File.separator + "target" + File.separator + "test-classes" + File.separator + "load"),
             CoreOptions.mavenBundle("org.apache.felix", "org.apache.felix.configadmin").versionAsInProject(),
