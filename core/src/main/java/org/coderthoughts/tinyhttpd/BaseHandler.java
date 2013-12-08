@@ -44,8 +44,7 @@ abstract class BaseHandler {
             return null;
         }
 
-        uri = uri.replace('/', File.separatorChar);
-        String path = webRoot + File.separator + uri;
+        String path = webRoot + File.separator + uri.replace('/', File.separatorChar);
 
         if (uri.trim().endsWith("/") && !isPost) {
             // Serve the index.html file if it exists in the directory

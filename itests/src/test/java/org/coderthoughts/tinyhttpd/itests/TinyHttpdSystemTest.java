@@ -137,7 +137,7 @@ public class TinyHttpdSystemTest {
         Assert.assertTrue("Uploaded file content should not have been changed", Arrays.equals(bytes1, bytes3));
 	}
 
-	// @Test
+	@Test
 	public void testDynamicReconfigure() throws Exception {
         // Make sure the server is up and running
         String initialContent = tryReadURL(new URL("http://localhost:7070/index.html"));
