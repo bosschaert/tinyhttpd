@@ -30,6 +30,7 @@ import io.netty.util.CharsetUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -37,6 +38,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -54,7 +56,7 @@ public class TinyHttpdSystemTest {
     @Configuration
     public Option[] config() {
         return CoreOptions.options(
-            // CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"), // for debugging
+            // CoreOptions.vmOption("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"), // uncomment for debugging
             CoreOptions.vmOption("-Dfelix.fileinstall.dir=" + System.getProperty("user.dir")
                 + File.separator + "target" + File.separator + "test-classes" + File.separator + "load"),
             CoreOptions.mavenBundle("org.apache.felix", "org.apache.felix.configadmin").versionAsInProject(),
@@ -136,6 +138,51 @@ public class TinyHttpdSystemTest {
         Assert.assertTrue("Uploaded file content should not have been changed", Arrays.equals(bytes1, bytes3));
 	}
 
+	@Test
+	public void testDynamicReconfigure() throws Exception {
+        // Make sure the server is up and running
+        String initialContent = tryReadURL(new URL("http://localhost:7070/index.html"));
+        Assert.assertFalse(initialContent.contains("Foo"));
+        Assert.assertTrue(initialContent.contains("information"));
+
+        File cmFile = new File(System.getProperty("felix.fileinstall.dir") + "/org.coderthoughts.tinyhttpd.cfg");
+        Properties config = new Properties();
+        FileInputStream fis = new FileInputStream(cmFile);
+        try {
+            config.load(fis);
+        } finally {
+            fis.close();
+        }
+
+        Properties newConfig = new Properties();
+        newConfig.setProperty("port", "7654");
+        newConfig.setProperty("root", config.getProperty("root") + "/../alt-root");
+        FileOutputStream fos = new FileOutputStream(cmFile);
+        try {
+            newConfig.store(fos, "Testing dynamic reconfiguration");
+        } finally {
+            fos.close();
+        }
+
+        try {
+            String newContent = tryReadURL(new URL("http://localhost:7654/index.html"));
+            Assert.assertTrue(newContent.contains("Foo"));
+            Assert.assertFalse(newContent.contains("information"));
+        } finally {
+            // Put the configuration back
+            FileOutputStream fos2 = new FileOutputStream(cmFile);
+            try {
+                config.store(fos2, "Restoring original configuration");
+            } finally {
+                fos2.close();
+            }
+
+            // Use 127.0.0.1 to avoid getting the result via a cache
+            String resetContent = tryReadURL(new URL("http://127.0.0.1:7070/index.html"));
+            Assert.assertFalse("Should serve the original content again", resetContent.contains("Foo"));
+            Assert.assertTrue("Should serve the original content again", resetContent.contains("information"));
+        }
+	}
     /*
     @Test
     public void testDirectory() throws Exception {
