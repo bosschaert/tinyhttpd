@@ -16,9 +16,9 @@ class DirectoryRenderer {
         sb.append("<!DOCTYPE html><html><head><title>Directory: ");
         sb.append(trimmedURI);
         sb.append("</title><style type=\"text/css\">");
-        sb.append("body {font-family:sans-serif;}");
+        sb.append("body {font-family:sans-serif; background-color:#FFFFEB;}");
         sb.append("td {padding-left:15px;}");
-        sb.append("</style></head><body bgcolor=\"#FFFFEB\">");
+        sb.append("</style></head><body>");
         sb.append("<h1>Directory: ");
         sb.append(trimmedURI);
         sb.append("</h1>");
