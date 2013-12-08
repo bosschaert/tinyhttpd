@@ -22,7 +22,7 @@ abstract class BaseHandler {
         this.webRoot = webRoot;
     }
 
-    String getPathFromUri(ChannelHandlerContext ctx, String uri) {
+    String getPathFromUri(ChannelHandlerContext ctx, String uri, boolean isPost) {
         try {
             uri = URLDecoder.decode(uri, "UTF-8");
         } catch (UnsupportedEncodingException e) {
@@ -47,7 +47,7 @@ abstract class BaseHandler {
         uri = uri.replace('/', File.separatorChar);
         String path = webRoot + File.separator + uri;
 
-        if (uri.trim().endsWith("/")) {
+        if (uri.trim().endsWith("/") && !isPost) {
             // Serve the index.html file if it exists in the directory
             if (new File(path + "index.html").isFile()) {
                 sendRedirect(ctx, uri + "index.html");

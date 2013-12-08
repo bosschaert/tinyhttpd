@@ -42,7 +42,7 @@ class GetHandler extends BaseHandler {
     }
 
     void handleGetRequest(ChannelHandlerContext ctx, FullHttpRequest request) throws ParseException, IOException {
-        String path = getPathFromUri(ctx, request.getUri());
+        String path = getPathFromUri(ctx, request.getUri(), false);
         if (path == null) {
             // the getPathFromUri method will have written the appropriate error response
             return;

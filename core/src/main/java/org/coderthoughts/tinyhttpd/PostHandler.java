@@ -53,7 +53,7 @@ class PostHandler extends BaseHandler {
 
         decoder.offer(request);
 
-        String path = getPathFromUri(ctx, uri);
+        String path = getPathFromUri(ctx, uri, true);
         if (path == null) {
             return;
         }
