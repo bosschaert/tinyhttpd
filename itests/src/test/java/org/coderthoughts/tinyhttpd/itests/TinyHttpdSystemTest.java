@@ -50,6 +50,11 @@ import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerClass;
 
+/**
+ * This is a system test which is normally run from Maven through Pax Exam. The system test will run in an OSGi framework with
+ * the web server bundle and all its dependencies deployed. The test exercises the functionality of the web server
+ * programmatically.
+ */
 @RunWith(PaxExam.class)
 @ExamReactorStrategy(PerClass.class)
 public class TinyHttpdSystemTest {
@@ -113,6 +118,7 @@ public class TinyHttpdSystemTest {
         URI postURI = new URI("/images/");
         File fileRes = new File(System.getProperty("felix.fileinstall.dir") + "/../web-root/index.html");
 
+        // Upload the file
         HttpUploadTestResponseHandler responseHandler = uploadFile(postURI, fileRes);
         Assert.assertEquals(200, responseHandler.status.code());
         Assert.assertEquals("text/html; charset=UTF-8", responseHandler.headers.get("Content-Type"));
@@ -123,13 +129,12 @@ public class TinyHttpdSystemTest {
         Assert.assertTrue("Returned directory listing should contain 'index.html'", idx2 > 0);
         Assert.assertTrue("david.png should be ordered before index.html", idx1 < idx2);
 
-        Assert.assertEquals(fileRes.length(), uploadedFileRes.length());
-
+        // Check that the uploaded file, as written out is identical to its original
         byte[] bytes1 = Streams.suck(new FileInputStream(fileRes)); // suck closes the input stream when done
         byte[] bytes2 = Streams.suck(new FileInputStream(uploadedFileRes));
         Assert.assertTrue("Uploaded file content not identical to original", Arrays.equals(bytes1, bytes2));
 
-        // upload another index.html, where one already exists - should produce a 406
+        // upload another index.html, where one already exists - should be rejected with a 406
         File fileResAlt = new File(System.getProperty("felix.fileinstall.dir") + "/../alt-root/index.html");
         HttpUploadTestResponseHandler responseHandler2 = uploadFile(postURI, fileResAlt);
         Assert.assertEquals("Uploading a file that already exists should produce a HTTP 406 status code",
@@ -150,9 +155,11 @@ public class TinyHttpdSystemTest {
 
         // Use the Java7 try-with-resources auto close on the input stream.
         try (FileInputStream fis = new FileInputStream(cmFile)) {
+            // Load the existing configuration
             config.load(fis);
         }
 
+        // Reconfigure the web server with a new port number and a new web root.
         Properties newConfig = new Properties();
         newConfig.setProperty("port", "7654");
         newConfig.setProperty("root", config.getProperty("root") + "/../alt-root");
@@ -162,11 +169,12 @@ public class TinyHttpdSystemTest {
         }
 
         try {
+            // Check that the content from the newly configured webserver can be read
             String newContent = tryReadURL(new URL("http://localhost:7654/index.html"));
             Assert.assertTrue(newContent.contains("Foo"));
             Assert.assertFalse(newContent.contains("information"));
         } finally {
-            // Put the configuration back
+            // Put the original configuration back
             try (FileOutputStream fos2 = new FileOutputStream(cmFile)) {
                 config.store(fos2, "Restoring original configuration");
             }
@@ -190,6 +198,30 @@ public class TinyHttpdSystemTest {
         Assert.assertTrue("Should provide a directory listing.", imagesContent.contains("Directory"));
     }
 
+	/**
+	 * The web server is configured and started asynchronously, therefore we may have to retry a read from a given
+	 * location a few times, until the server has been configured and started.
+	 * @param url The url to read from. If reading causes an error, this method waits a little and then tries again
+	 * to a maximum of 20 retries.
+	 */
+    private String tryReadURL(URL url) throws Exception {
+        int retries = 20;
+        while (--retries > 0) {
+            try {
+                System.out.println("Trying to read from: " + url);
+                return new String(Streams.suck(url.openStream()));
+            } catch (Exception e) {
+                // ignore
+            }
+            Thread.sleep(1000);
+        }
+        throw new IOException("Unable to read from URL: " + url);
+    }
+
+    /**
+     * This method uses the Netty HTTP client to upload a file, like a user would do with the HTML form in the
+     * directory listing.
+     */
     private HttpUploadTestResponseHandler uploadFile(URI postURI, File fileToUpload) throws Exception {
         EventLoopGroup group = new NioEventLoopGroup();
         HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
@@ -234,20 +266,9 @@ public class TinyHttpdSystemTest {
         }
     }
 
-    private String tryReadURL(URL url) throws Exception {
-        int retries = 20;
-        while (--retries > 0) {
-            try {
-                System.out.println("Trying to read from: " + url);
-                return new String(Streams.suck(url.openStream()));
-            } catch (Exception e) {
-                // ignore
-            }
-            Thread.sleep(500);
-        }
-        throw new IOException("Unable to read from URL: " + url);
-    }
-
+    /**
+     * This class is used by the Netty File uploader in the {@link #uploadFile} method.
+     */
     static class HttpUploadTestClientInitializer extends ChannelInitializer<SocketChannel> {
         private final HttpUploadTestResponseHandler handler;
 
@@ -265,6 +286,10 @@ public class TinyHttpdSystemTest {
         }
     }
 
+    /**
+     * This class is used by the Netty File uploader in the {@link #uploadFile} method and can be used
+     * by the test to inspect the returned HTTP message.
+     */
     static class HttpUploadTestResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
         HttpResponseStatus status;
         Map<String, String> headers;
