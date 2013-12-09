@@ -16,6 +16,7 @@
       <groupId>io.netty</groupId>
       <artifactId>netty-codec-http</artifactId>
       <version>${netty.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -35,14 +36,14 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-all</artifactId>
-      <version>1.9.5</version>
+      <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>    
   </dependencies>
@@ -52,6 +53,7 @@
       <plugin>
         <groupId>org.apache.felix</groupId>
         <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.4.0</version>
         <extensions>true</extensions>
         <configuration>
           <instructions>
@@ -63,15 +65,6 @@
         </configuration>
       </plugin>
     </plugins>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.felix</groupId>
-          <artifactId>maven-bundle-plugin</artifactId>
-          <version>2.4.0</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
   </build>
 </project>
 
