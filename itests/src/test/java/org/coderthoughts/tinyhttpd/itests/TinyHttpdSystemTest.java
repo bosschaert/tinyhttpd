@@ -213,7 +213,7 @@ public class TinyHttpdSystemTest {
             } catch (Exception e) {
                 // ignore
             }
-            Thread.sleep(1000);
+            Thread.sleep(500);
         }
         throw new IOException("Unable to read from URL: " + url);
     }
