@@ -8,7 +8,7 @@ import org.osgi.framework.Constants;
 import org.osgi.service.cm.ManagedService;
 
 /**
- * The Activator is invoked by the OSGi Framework to activate this bundle.
+ * The Activator is invoked by the OSGi Framework to activate the component.
  * It registers the server with Configuration Admin and is also responsible
  * for stopping the server.
  */
