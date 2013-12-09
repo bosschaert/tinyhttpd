@@ -12,6 +12,9 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ManagedService;
 
+/**
+ * Unit test for the Activator class.
+ */
 public class ActivatorTest {
     @Test
     public void testActivatorStart() {
@@ -35,7 +38,8 @@ public class ActivatorTest {
 
         Hashtable<String, Object> properties = new Hashtable<>();
         properties.put(Constants.SERVICE_PID, "org.coderthoughts.tinyhttpd");
-        Mockito.verify(bc).registerService(Mockito.eq(ManagedService.class), Mockito.argThat(intfMatcher), Mockito.eq(properties));
+        Mockito.verify(bc).registerService(Mockito.eq(ManagedService.class),
+                Mockito.argThat(intfMatcher), Mockito.eq(properties));
     }
 
     @Test
@@ -52,5 +56,4 @@ public class ActivatorTest {
         a.stop(null);
         Mockito.verify(mockController, Mockito.times(1)).shutdown();
     }
-
 }

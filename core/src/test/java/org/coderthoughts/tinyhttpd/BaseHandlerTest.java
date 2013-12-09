@@ -15,6 +15,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+/**
+ * Unit test for the BaseHandler class.
+ */
 public class BaseHandlerTest {
     @Test
     public void testGetSimplePathFromUri() {

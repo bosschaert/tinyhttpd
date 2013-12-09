@@ -15,6 +15,10 @@ import org.osgi.service.cm.ManagedService;
 public class Activator implements BundleActivator {
     private ServerController controller;
 
+    /**
+     * Called by the OSGi Framework when this bundle is started.
+     * @param context The OSGi Bundle Context for this bundle.
+     */
     @Override
     public void start(BundleContext context) {
         controller = new ServerController();
@@ -24,6 +28,10 @@ public class Activator implements BundleActivator {
         // The ServerController is started through configuration
     }
 
+    /**
+     * Called by the OSGi Framework when this bundle is stopped.
+     * @param context The OSGi Bundle Context for this bundle.
+     */
     @Override
     public void stop(BundleContext context) throws Exception {
         controller.shutdown();

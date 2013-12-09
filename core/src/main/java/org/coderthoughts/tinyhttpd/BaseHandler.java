@@ -22,6 +22,10 @@ import java.net.URLDecoder;
 abstract class BaseHandler {
     private final String webRoot;
 
+    /**
+     * Constructor. The web-root location must be provided.
+     * @param webRoot The location on disk that maps to the root web URI ('/')
+     */
     BaseHandler(String webRoot) {
         if (webRoot == null) {
             throw new NullPointerException();
