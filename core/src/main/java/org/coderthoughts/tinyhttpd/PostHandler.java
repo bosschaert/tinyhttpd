@@ -82,11 +82,10 @@ class PostHandler extends BaseHandler {
                                 "File already exists: " + fileUpload.getFilename());
                         return;
                     }
-                    FileOutputStream fos = new FileOutputStream(uploadedFile);
-                    try {
+
+                    // Use the Java7 try-with-resources auto close on the output stream.
+                    try (FileOutputStream fos = new FileOutputStream(uploadedFile)) {
                         fileUpload.getByteBuf().getBytes(0, fos, (int) fileUpload.length());
-                    } finally {
-                        fos.close();
                     }
                 }
             }

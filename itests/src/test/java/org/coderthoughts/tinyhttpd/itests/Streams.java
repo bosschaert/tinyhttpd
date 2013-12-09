@@ -43,12 +43,10 @@ public class Streams {
      * @throws IOException When an error occurs during reading.
      */
     public static byte [] suck(InputStream is) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {
+        // Use the Java7 try-with-resources auto close on the output stream.
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             pump(is, baos);
             return baos.toByteArray();
-        } finally {
-            is.close();
         }
     }
 }

@@ -147,21 +147,18 @@ public class TinyHttpdSystemTest {
 
         File cmFile = new File(System.getProperty("felix.fileinstall.dir") + "/org.coderthoughts.tinyhttpd.cfg");
         Properties config = new Properties();
-        FileInputStream fis = new FileInputStream(cmFile);
-        try {
+
+        // Use the Java7 try-with-resources auto close on the input stream.
+        try (FileInputStream fis = new FileInputStream(cmFile)) {
             config.load(fis);
-        } finally {
-            fis.close();
         }
 
         Properties newConfig = new Properties();
         newConfig.setProperty("port", "7654");
         newConfig.setProperty("root", config.getProperty("root") + "/../alt-root");
-        FileOutputStream fos = new FileOutputStream(cmFile);
-        try {
+
+        try (FileOutputStream fos = new FileOutputStream(cmFile)) {
             newConfig.store(fos, "Testing dynamic reconfiguration");
-        } finally {
-            fos.close();
         }
 
         try {
@@ -170,11 +167,8 @@ public class TinyHttpdSystemTest {
             Assert.assertFalse(newContent.contains("information"));
         } finally {
             // Put the configuration back
-            FileOutputStream fos2 = new FileOutputStream(cmFile);
-            try {
+            try (FileOutputStream fos2 = new FileOutputStream(cmFile)) {
                 config.store(fos2, "Restoring original configuration");
-            } finally {
-                fos2.close();
             }
 
             // Use 127.0.0.1 to avoid getting the result via a cache
