@@ -106,16 +106,16 @@ public class TinyHttpdSystemTest {
 	@Test
 	public void testUpload() throws Exception {
         // Make sure the server is up and running
-        tryReadURL(new URL("http://localhost:7070/images/david.png"));
+        tryReadURL(new URL("http://localhost:7070/uploaddir/test.txt"));
 
 	    // This is where the upload file will end up...
-        File uploadedFileRes = new File(System.getProperty("felix.fileinstall.dir") + "/../web-root/images/index.html");
+        File uploadedFileRes = new File(System.getProperty("felix.fileinstall.dir") + "/../web-root/uploaddir/index.html");
         if (uploadedFileRes.exists()) {
             // Delete it if it was there from an earlier test run.
             Assert.assertTrue("Precondition", uploadedFileRes.delete());
         }
 
-        URI postURI = new URI("/images/");
+        URI postURI = new URI("/uploaddir/");
         File fileRes = new File(System.getProperty("felix.fileinstall.dir") + "/../web-root/index.html");
 
         // Upload the file
@@ -123,11 +123,11 @@ public class TinyHttpdSystemTest {
         Assert.assertEquals(200, responseHandler.status.code());
         Assert.assertEquals("text/html; charset=UTF-8", responseHandler.headers.get("Content-Type"));
         String content = responseHandler.content.toString();
-        int idx1 = content.indexOf("david.png");
-        Assert.assertTrue("Returned directory listing should contain 'david.png'", idx1 > 0);
+        int idx1 = content.indexOf("test.txt");
+        Assert.assertTrue("Returned directory listing should contain 'test.txt'", idx1 > 0);
         int idx2 = content.indexOf("index.html");
         Assert.assertTrue("Returned directory listing should contain 'index.html'", idx2 > 0);
-        Assert.assertTrue("david.png should be ordered before index.html", idx1 < idx2);
+        Assert.assertTrue("index.html should be ordered before test.txt", idx2 < idx1);
 
         // Check that the uploaded file, as written out is identical to its original
         byte[] bytes1 = Streams.suck(new FileInputStream(fileRes)); // suck closes the input stream when done
