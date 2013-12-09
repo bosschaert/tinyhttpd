@@ -43,7 +43,7 @@ class PostHandler extends BaseHandler {
     }
 
     /**
-     * Handle the post request.
+     * Handle the POST request.
      * @param ctx The Channel Handler Context from Netty.
      * @param request The POST request.
      */

@@ -29,6 +29,12 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
+/**
+ * Handler for HTTP GET requests. Normally the resource requested is provided, but if the
+ * user requests a directory URI a directory listing is provided. However, if the directory
+ * contains an index.html file, the client is redirected to show the index.html instead of
+ * the directory listing.
+ */
 class GetHandler extends BaseHandler {
     private static final int HTTP_CACHE_SECONDS = 60;
     private static final SimpleDateFormat HTTP_DATE_FORMATTER;
@@ -37,10 +43,19 @@ class GetHandler extends BaseHandler {
         HTTP_DATE_FORMATTER.setTimeZone(TimeZone.getTimeZone("GMT"));
     }
 
+    /**
+     * Constructor. The web-root location must be provided.
+     * @param webRoot The location on disk that maps to the root web URI ('/')
+     */
     GetHandler(String webRoot) {
         super(webRoot);
     }
 
+    /**
+     * Handle the GET request.
+     * @param ctx The Channel Handler Context from Netty.
+     * @param request The GET request.
+     */
     void handleGetRequest(ChannelHandlerContext ctx, FullHttpRequest request) throws ParseException, IOException {
         String path = getPathFromUri(ctx, request.getUri(), false);
         if (path == null) {
@@ -105,7 +120,7 @@ class GetHandler extends BaseHandler {
                 new DefaultFileRegion(raf.getChannel(), 0, raf.length()), ctx.newProgressivePromise());
         sendFileFuture.addListener(new ChannelProgressiveFutureListener() {
             @Override
-            public void operationComplete(ChannelProgressiveFuture arg0) throws Exception {
+            public void operationComplete(ChannelProgressiveFuture future) throws Exception {
                 raf.close();
             }
 
@@ -123,6 +138,9 @@ class GetHandler extends BaseHandler {
         }
     }
 
+    /**
+     * Send the Not Modified HTTP response code to the client (304).
+     */
     private static void sendNotModified(ChannelHandlerContext ctx) {
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_MODIFIED);
 
@@ -131,6 +149,9 @@ class GetHandler extends BaseHandler {
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
+    /**
+     * Sets caching information on the response.
+     */
     private static void setDateAndCacheHeaders(HttpResponse response, File fileToCache) {
         // Date header
         Calendar time = new GregorianCalendar();
@@ -144,8 +165,11 @@ class GetHandler extends BaseHandler {
                 HTTP_DATE_FORMATTER.format(new Date(fileToCache.lastModified())));
     }
 
+    /**
+     * Sets the MIME type for the requested file in the request.
+     */
     private static void setMimeTypeHeader(HttpResponse response, File file) throws IOException {
-        // It would have been better to use Files.probeContentType(file.toPath()) but unfortunately
+        // It might have been better to use Files.probeContentType(file.toPath()) but unfortunately
         // that doesn't work on Mac OSX.
         String mimeType = URLConnection.guessContentTypeFromName(file.getAbsolutePath());
         if (mimeType != null) {
