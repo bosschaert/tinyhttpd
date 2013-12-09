@@ -18,6 +18,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+/**
+ * Handler for HTTP POST requests. The only POST requests supported are file upload
+ * requests. To upload a file to a directory, send the post request to the URI representing
+ * the directory.
+ */
 class PostHandler extends BaseHandler {
     private static HttpDataFactory factory = new DefaultHttpDataFactory(true);
 
@@ -29,10 +34,19 @@ class PostHandler extends BaseHandler {
         DiskAttribute.baseDirectory = null;
     }
 
-    public PostHandler(String webRoot) {
+    /**
+     * Constructor. The web-root location must be provided.
+     * @param webRoot The location on disk that maps to the root web URI ('/')
+     */
+    PostHandler(String webRoot) {
         super(webRoot);
     }
 
+    /**
+     * Handle the post request.
+     * @param ctx The Channel Handler Context from Netty.
+     * @param request The POST request.
+     */
     void handlePostRequest(ChannelHandlerContext ctx, FullHttpRequest request) {
         String uri = request.getUri();
 
@@ -53,7 +67,9 @@ class PostHandler extends BaseHandler {
         }
     }
 
-
+    /**
+     * Read the HTTP chunks.
+     */
     private void readHttpDataChunkByChunk(ChannelHandlerContext ctx, HttpPostRequestDecoder decoder, File targetDir) {
         try {
             while (decoder.hasNext()) {
@@ -71,6 +87,13 @@ class PostHandler extends BaseHandler {
         }
     }
 
+    /**
+     * Write the uploaded file to disk. If a file with this name already exists in the upload location
+     * an HTTP 406 error code is returned.
+     * @param ctx The Channel Handler Context.
+     * @param data The data provided by the HTTP request.
+     * @param uploadDir The directory on disk where the upload needs to go to.
+     */
     private void writeHttpData(ChannelHandlerContext ctx, InterfaceHttpData data, File uploadDir) {
         try {
             if (data.getHttpDataType() == HttpDataType.FileUpload) {
