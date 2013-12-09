@@ -183,21 +183,18 @@ public class TinyHttpdSystemTest {
             Assert.assertTrue("Should serve the original content again", resetContent.contains("information"));
         }
 	}
-    /*
-    @Test
+
+	@Test
     public void testDirectory() throws Exception {
-        URL url = new URL("http://localhost:7070/images/david.png");
-        tryReadURL(url);
+        URL url = new URL("http://localhost:7070/");
+        String rootContent = tryReadURL(url);
+        Assert.assertFalse("This location contains an index.html so no directory listing is provided",
+                rootContent.contains("Directory"));
 
         URL dirURL = new URL("http://localhost:7070/images/");
-        String s = tryReadURL(dirURL);
-        System.out.println(s);
+        String imagesContent = tryReadURL(dirURL);
+        Assert.assertTrue("Should provide a directory listing.", imagesContent.contains("Directory"));
     }
-
-
-    // TODO test reconfigure
-    // TODO get rid of that exception in the header test...
-    */
 
     private HttpUploadTestResponseHandler uploadFile(URI postURI, File fileToUpload) throws Exception {
         EventLoopGroup group = new NioEventLoopGroup();
