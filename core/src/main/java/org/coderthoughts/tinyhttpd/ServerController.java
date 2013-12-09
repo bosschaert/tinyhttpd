@@ -30,7 +30,7 @@ import org.osgi.service.cm.ManagedService;
  *   root = web root directory on local disk, defaults to the user.dir property
  * The configuration values can be changed dynamically at runtime.
  */
-public class ServerController implements ManagedService {
+class ServerController implements ManagedService {
     static final int MAX_HTTP_CONTENT_LENGTH = 2 * 1024 * 1024; // 2mb
 
     private Channel channel;
@@ -39,9 +39,12 @@ public class ServerController implements ManagedService {
     private final NioEventLoopGroup workerGroup;
 
     // Configuration properties
-    private int port = -1;
+    private int port = -1; // Port must be configured before server is started
     private volatile String webRoot = System.getProperty("user.home");
 
+    /**
+     * The constructor creates the thread pools and bootstraps the server.
+     */
     ServerController() {
         bossGroup = new NioEventLoopGroup();
         workerGroup = new NioEventLoopGroup();
@@ -52,12 +55,18 @@ public class ServerController implements ManagedService {
             childHandler(new ChildHandlerInitializer());
     }
 
+    /**
+     * Start the server.
+     */
     synchronized void start() throws InterruptedException {
         System.out.print("Server starting on port: " + port + "...");
         channel = serverBootstrap.bind(port).sync().channel();
         System.out.println("done");
     }
 
+    /**
+     * Stop the server.
+     */
     synchronized void stop() throws InterruptedException {
         if (channel != null) {
             System.out.print("Server stopping port: " + port + "...");
@@ -67,6 +76,9 @@ public class ServerController implements ManagedService {
         }
     }
 
+    /**
+     * Shut down the server. This will also stop the server if needed.
+     */
     void shutdown() throws InterruptedException {
         stop();
         bossGroup.shutdownGracefully();
@@ -74,6 +86,13 @@ public class ServerController implements ManagedService {
         System.out.println("Server shut down");
     }
 
+    /**
+     * Callback mechanism used by the OSGi Configuration Admin service to provide configuration.
+     * Note that configuration can change dynamically, so multiple calls to this method can be
+     * expected and the system should reconfigure itself when this happens.
+     * The server is not started until at least configuration for the 'port' is received.
+     * @param properties The current configuration properties.
+     */
     @Override
     public void updated(Dictionary<String, ?> properties) throws ConfigurationException {
         if (properties == null)
@@ -100,12 +119,15 @@ public class ServerController implements ManagedService {
         }
     }
 
+    /**
+     * Initialises the Netty pipe line.
+     */
     class ChildHandlerInitializer extends ChannelInitializer<SocketChannel> {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
             ChannelPipeline pipeline = ch.pipeline();
             pipeline.addLast("decoder", new HttpRequestDecoder());
-            pipeline.addLast("aggregator", new HttpObjectAggregator(MAX_HTTP_CONTENT_LENGTH)); // max upload size = 1mb
+            pipeline.addLast("aggregator", new HttpObjectAggregator(MAX_HTTP_CONTENT_LENGTH));
             pipeline.addLast("encoder", new HttpResponseEncoder());
             pipeline.addLast("chunkedWriter", new ChunkedWriteHandler());
             pipeline.addLast("handler", new HttpHandler(webRoot));
