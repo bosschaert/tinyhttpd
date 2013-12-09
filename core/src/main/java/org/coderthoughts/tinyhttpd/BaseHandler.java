@@ -19,6 +19,9 @@ abstract class BaseHandler {
     private final String webRoot;
 
     public BaseHandler(String webRoot) {
+        if (webRoot == null) {
+            throw new NullPointerException();
+        }
         this.webRoot = webRoot;
     }
 
@@ -39,13 +42,7 @@ abstract class BaseHandler {
             return null;
         }
 
-        if (webRoot == null) {
-            sendError(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR);
-            return null;
-        }
-
-        String path = webRoot + File.separator + uri.replace('/', File.separatorChar);
-
+        String path = webRoot + uri.replace('/', File.separatorChar);
         if (uri.trim().endsWith("/") && !isPost) {
             // Serve the index.html file if it exists in the directory
             if (new File(path + "index.html").isFile()) {
