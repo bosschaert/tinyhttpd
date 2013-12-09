@@ -18,18 +18,20 @@ import org.mockito.Mockito;
 public class BaseHandlerTest {
     @Test
     public void testGetSimplePathFromUri() {
-        BaseHandler bh = new BaseHandler("/foo") {};
+        BaseHandler bh = new BaseHandler("foo") {};
 
         String path = bh.getPathFromUri(null, "/bar/", false);
-        Assert.assertEquals("/foo/bar/", path);
+        String expected = "foo/bar/".replace('/', File.separatorChar);
+        Assert.assertEquals(expected, path);
     }
 
     @Test
     public void testGetSimplePathFromUri2() {
-        BaseHandler bh = new BaseHandler("/foo") {};
+        BaseHandler bh = new BaseHandler("foo") {};
 
         String path = bh.getPathFromUri(null, "/bar", false);
-        Assert.assertEquals("/foo/bar", path);
+        String expected = "foo/bar".replace('/', File.separatorChar);
+        Assert.assertEquals(expected, path);
     }
 
     @Test
