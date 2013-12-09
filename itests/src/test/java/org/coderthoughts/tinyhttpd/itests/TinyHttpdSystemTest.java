@@ -76,39 +76,39 @@ public class TinyHttpdSystemTest {
             CoreOptions.junitBundles());
     }
 
-	@Test
-	public void testReadWebResource() throws Exception {
-		URL url = new URL("http://localhost:7070");
+    @Test
+    public void testReadWebResource() throws Exception {
+        URL url = new URL("http://localhost:7070");
         String content = tryReadURL(url);
-		Assert.assertTrue(content.contains("Allaert Joachim David Bosschaert"));
-	}
+        Assert.assertTrue(content.contains("Allaert Joachim David Bosschaert"));
+    }
 
-	@Test
-	public void testReadHeaders() throws Exception {
-	    // Make sure the server is up and running
+    @Test
+    public void testReadHeaders() throws Exception {
+        // Make sure the server is up and running
         tryReadURL(new URL("http://localhost:7070/images/david.png"));
 
         HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:7070/images/david.png").openConnection();
         try {
-    		Assert.assertEquals(200, connection.getResponseCode());
-    		Assert.assertEquals("image/png", connection.getHeaderField("Content-Type"));
-    		Assert.assertEquals("keep-alive", connection.getHeaderField("Connection"));
-    		Assert.assertEquals("private, max-age=60", connection.getHeaderField("Cache-Control"));
+            Assert.assertEquals(200, connection.getResponseCode());
+            Assert.assertEquals("image/png", connection.getHeaderField("Content-Type"));
+            Assert.assertEquals("keep-alive", connection.getHeaderField("Connection"));
+            Assert.assertEquals("private, max-age=60", connection.getHeaderField("Cache-Control"));
 
-    		File fileRes = new File(System.getProperty("felix.fileinstall.dir") + "/../web-root/images/david.png");
-    		Assert.assertEquals(fileRes.length(), connection.getHeaderFieldInt("Content-Length", -1));
+            File fileRes = new File(System.getProperty("felix.fileinstall.dir") + "/../web-root/images/david.png");
+            Assert.assertEquals(fileRes.length(), connection.getHeaderFieldInt("Content-Length", -1));
         } finally {
             // Empty the stream, otherwise we get an ugly exception on the server...
             Streams.suck(connection.getInputStream());
         }
-	}
+    }
 
-	@Test
-	public void testUpload() throws Exception {
+    @Test
+    public void testUpload() throws Exception {
         // Make sure the server is up and running
         tryReadURL(new URL("http://localhost:7070/uploaddir/test.txt"));
 
-	    // This is where the upload file will end up...
+        // This is where the upload file will end up...
         File uploadedFileRes = new File(System.getProperty("felix.fileinstall.dir") + "/../web-root/uploaddir/index.html");
         if (uploadedFileRes.exists()) {
             // Delete it if it was there from an earlier test run.
@@ -141,10 +141,10 @@ public class TinyHttpdSystemTest {
                 HttpResponseStatus.NOT_ACCEPTABLE.code(), responseHandler2.status.code());
         byte[] bytes3 = Streams.suck(new FileInputStream(uploadedFileRes));
         Assert.assertTrue("Uploaded file content should not have been changed", Arrays.equals(bytes1, bytes3));
-	}
+    }
 
-	@Test
-	public void testDynamicReconfigure() throws Exception {
+    @Test
+    public void testDynamicReconfigure() throws Exception {
         // Make sure the server is up and running
         String initialContent = tryReadURL(new URL("http://localhost:7070/index.html"));
         Assert.assertFalse(initialContent.contains("Foo"));
@@ -184,9 +184,9 @@ public class TinyHttpdSystemTest {
             Assert.assertFalse("Should serve the original content again", resetContent.contains("Foo"));
             Assert.assertTrue("Should serve the original content again", resetContent.contains("information"));
         }
-	}
+    }
 
-	@Test
+    @Test
     public void testDirectory() throws Exception {
         URL url = new URL("http://localhost:7070/");
         String rootContent = tryReadURL(url);
@@ -198,12 +198,12 @@ public class TinyHttpdSystemTest {
         Assert.assertTrue("Should provide a directory listing.", imagesContent.contains("Directory"));
     }
 
-	/**
-	 * The web server is configured and started asynchronously, therefore we may have to retry a read from a given
-	 * location a few times, until the server has been configured and started.
-	 * @param url The url to read from. If reading causes an error, this method waits a little and then tries again
-	 * to a maximum of 20 retries.
-	 */
+    /**
+     * The web server is configured and started asynchronously, therefore we may have to retry a read from a given
+     * location a few times, until the server has been configured and started.
+     * @param url The url to read from. If reading causes an error, this method waits a little and then tries again
+     * to a maximum of 20 retries.
+     */
     private String tryReadURL(URL url) throws Exception {
         int retries = 20;
         while (--retries > 0) {
