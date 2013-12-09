@@ -25,6 +25,14 @@ public class BaseHandlerTest {
     }
 
     @Test
+    public void testGetSimplePathFromUri2() {
+        BaseHandler bh = new BaseHandler("/foo") {};
+
+        String path = bh.getPathFromUri(null, "/bar", false);
+        Assert.assertEquals("/foo/bar", path);
+    }
+
+    @Test
     public void testGetPathFromUriDoesNotStartWithSlash() {
         ChannelHandlerContext mockCtx = Mockito.mock(ChannelHandlerContext.class);
         Mockito.when(mockCtx.writeAndFlush(Mockito.any())).thenReturn(Mockito.mock(ChannelFuture.class));
@@ -36,7 +44,7 @@ public class BaseHandlerTest {
     }
 
     @Test
-    public void testGetPathRedirectToIndexHtml() {
+    public void testGetPathRedirectToIndexHtmlGet() {
         File dir2 = new File(getClass().getResource("/dir2").getFile());
 
         ChannelHandlerContext mockCtx = Mockito.mock(ChannelHandlerContext.class);
@@ -48,6 +56,14 @@ public class BaseHandlerTest {
         Map<String, String> headers = new HashMap<>();
         headers.put("Location", "/index.html");
         Mockito.verify(mockCtx).writeAndFlush(Mockito.argThat(new HttpResponseCodeMatcher(302, headers)));
+    }
+
+    @Test
+    public void testGetPathRedirectToIndexHtmlPost() {
+        File dir2 = new File(getClass().getResource("/dir2").getFile());
+
+        BaseHandler bh = new BaseHandler(dir2.getAbsolutePath()) {};
+        Assert.assertEquals(dir2.getAbsolutePath() + File.separator, bh.getPathFromUri(null, "/", true));
     }
 
     static class HttpResponseCodeMatcher extends TypeSafeMatcher<HttpResponse> {
